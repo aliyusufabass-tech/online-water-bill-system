@@ -168,7 +168,7 @@ export default function UserPanel({ initialTab = 'profile', onNavigate }) {
 
         {tab === 'receipts' && (
           <div style={styles.card}>
-            <h3>Receipts (PDF)</h3>
+            <h3>Receipts</h3>
             <table width="100%" cellPadding="6" style={{ borderCollapse: 'collapse' }}>
               <thead><tr><th align="left">Reference</th><th align="left">Period</th><th align="left">Amount</th><th /></tr></thead>
               <tbody>
