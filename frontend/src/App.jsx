@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { api, clearTokens } from './api';
 import AdminPage from './pages/AdminPage';
 import AuthPage from './pages/AuthPage';
-import HomePage from './pages/HomePage';
 import UserPage from './pages/UserPage';
 
 function navigateTo(path, setPath) {
@@ -15,7 +14,7 @@ function navigateTo(path, setPath) {
 export default function App() {
   const [user, setUser] = useState(null);
   const [error, setError] = useState('');
-  const [path, setPath] = useState(window.location.pathname || '/home');
+  const [path, setPath] = useState(window.location.pathname || '/');
 
   const navigate = (to) => navigateTo(to, setPath);
 
@@ -33,7 +32,7 @@ export default function App() {
 
   useEffect(() => {
     loadMe();
-    const handler = () => setPath(window.location.pathname || '/home');
+    const handler = () => setPath(window.location.pathname || '/');
     window.addEventListener('popstate', handler);
     return () => window.removeEventListener('popstate', handler);
   }, []);
@@ -44,7 +43,7 @@ export default function App() {
     } finally {
       clearTokens();
       setUser(null);
-      navigate('/home');
+      navigate('/');
     }
   };
 
@@ -66,15 +65,15 @@ export default function App() {
     return <AdminPage user={user} onLogout={logout} initialTab="dashboard" onNavigate={navigate} />;
   }
   if (user && !user.is_staff && adminOnlyPaths.includes(path)) {
-    return <UserPage user={user} onLogout={logout} initialTab="profile" onNavigate={navigate} />;
+    return <UserPage user={user} onLogout={logout} initialTab="dashboard" onNavigate={navigate} />;
   }
 
   if (path === '/home' || path === '/') {
-    return <HomePage onNavigate={navigate} />;
+    return <AuthPage error={error} role="customer" mode="login" onAuthenticated={handleAuthSuccess} onNavigate={navigate} />;
   }
 
   if (path === '/admin/login') {
-    return <AuthPage error={error} role="admin" mode="login" onAuthenticated={handleAuthSuccess} onNavigate={navigate} />;
+    return <AuthPage error={error} role="customer" mode="login" onAuthenticated={handleAuthSuccess} onNavigate={navigate} />;
   }
   if (path === '/admin/register') {
     return <AuthPage error={error} role="admin" mode="register" onAuthenticated={handleAuthSuccess} onNavigate={navigate} />;
@@ -87,7 +86,7 @@ export default function App() {
   }
 
   if (!user) {
-    return <HomePage onNavigate={navigate} />;
+    return <AuthPage error={error} role="customer" mode="login" onAuthenticated={handleAuthSuccess} onNavigate={navigate} />;
   }
 
   if (path === '/admin-dashboard') {
@@ -104,10 +103,10 @@ export default function App() {
   }
 
   if (path === '/customer-dashboard') {
-    return <UserPage user={user} onLogout={logout} initialTab="profile" onNavigate={navigate} />;
+    return <UserPage user={user} onLogout={logout} initialTab="dashboard" onNavigate={navigate} />;
   }
   if (path === '/view-bills') {
-    return <UserPage user={user} onLogout={logout} initialTab="bills" onNavigate={navigate} />;
+    return <UserPage user={user} onLogout={logout} initialTab="dashboard" onNavigate={navigate} />;
   }
   if (path === '/payment') {
     return <UserPage user={user} onLogout={logout} initialTab="payment" onNavigate={navigate} />;
@@ -119,5 +118,5 @@ export default function App() {
     return <UserPage user={user} onLogout={logout} initialTab="receipts" onNavigate={navigate} />;
   }
 
-  return <HomePage onNavigate={navigate} />;
+  return <AuthPage error={error} role="customer" mode="login" onAuthenticated={handleAuthSuccess} onNavigate={navigate} />;
 }
