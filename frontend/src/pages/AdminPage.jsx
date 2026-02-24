@@ -5,7 +5,7 @@ export default function AdminPage({ user, onLogout, initialTab, onNavigate }) {
   return (
     <main className="page">
       <div style={styles.card}>
-        <h2>Admin Portal</h2>
+        <h2>Admin Dashboard</h2>
         <p>Username: {user.username}</p>
         <button style={styles.button} onClick={onLogout}>Logout</button>
       </div>

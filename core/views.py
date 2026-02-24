@@ -59,11 +59,9 @@ class AdminRegisterAPIView(APIView):
         serializer = RegisterSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
-        user.is_staff = True
-        user.save(update_fields=['is_staff'])
         return Response(
             {
-                'message': 'Admin registration successful.',
+                'message': 'Registration successful.',
                 'tokens': build_tokens(user),
                 'user': UserSerializer(user).data,
             },

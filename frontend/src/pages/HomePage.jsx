@@ -10,7 +10,6 @@ export default function HomePage({ onNavigate }) {
           <button style={styles.button} onClick={() => onNavigate('/login')}>Customer Login</button>
           <button style={styles.button} onClick={() => onNavigate('/register')}>Customer Register</button>
           <button style={styles.button} onClick={() => onNavigate('/admin/login')}>Admin Login</button>
-          <button style={styles.button} onClick={() => onNavigate('/admin/register')}>Admin Register</button>
         </div>
       </div>
     </main>
