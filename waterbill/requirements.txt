@@ -1,6 +1,6 @@
 ﻿Django
 djangorestframework
-django-cors-header
+django-cors-headers
 Pillow
 reportlab
 psycopg2-binary
