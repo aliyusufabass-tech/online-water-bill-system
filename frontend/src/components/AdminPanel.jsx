@@ -536,7 +536,7 @@ export default function AdminPanel({ currentUser, initialTab = 'dashboard', onNa
                       <input style={ui.input} value={Number.isFinite(meterReadingPreview) ? meterReadingPreview.toFixed(2) : '0.00'} readOnly />
                     </div>
                     <div style={{ ...ui.field, ...ui.fullRow }}>
-                      <p style={ui.helper}>Formula used: `Meter Reading = Amount / 100` (example: 100 => 1.00)</p>
+                      <p style={ui.helper}>Formula used: `Meter Reading = Amount / 100` (example: 100 =&gt; 1.00)</p>
                     </div>
                   </div>
                   <button style={ui.button} type="submit">{editingBill ? 'Update Bill' : 'Add Bill'}</button>
