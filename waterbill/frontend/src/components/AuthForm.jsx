@@ -1,22 +1,29 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { api, setTokens } from '../api';
 import { styles } from '../uiStyles';
+
+const emptyForm = {
+  username: '',
+  email: '',
+  password: '',
+  confirm_password: '',
+  full_name: '',
+  phone_number: '',
+  address: '',
+};
 
 export default function AuthForm({ role = 'customer', initialMode = 'login', allowSwitch = false, onAuthenticated }) {
   const [mode, setMode] = useState(initialMode);
   const [error, setError] = useState('');
-  const [form, setForm] = useState({
-    username: '',
-    email: '',
-    password: '',
-    confirm_password: '',
-    full_name: '',
-    account_number: '',
-    phone_number: '',
-    address: '',
-  });
+  const [form, setForm] = useState(emptyForm);
 
   const isRegister = mode === 'register';
+  useEffect(() => {
+    setMode(initialMode);
+    setError('');
+    setForm(emptyForm);
+  }, [initialMode, role]);
+
   const authPath = useMemo(() => {
     if (role === 'admin') return isRegister ? '/admin/register/' : '/admin/login/';
     return isRegister ? '/customer/register/' : '/customer/login/';
@@ -38,7 +45,6 @@ export default function AuthForm({ role = 'customer', initialMode = 'login', all
             email: form.email,
             password: form.password,
             full_name: form.full_name,
-            account_number: form.account_number,
             phone_number: form.phone_number,
             address: form.address,
           }
@@ -52,7 +58,7 @@ export default function AuthForm({ role = 'customer', initialMode = 'login', all
         body: JSON.stringify(payload),
       });
       setTokens(authResponse.tokens);
-      onAuthenticated();
+      await onAuthenticated?.(authResponse.user);
     } catch (err) {
       setError(err.message);
     }
@@ -69,7 +75,6 @@ export default function AuthForm({ role = 'customer', initialMode = 'login', all
         {isRegister && (
           <>
             <input style={styles.input} placeholder="Full Name" required onChange={(e) => setForm({ ...form, full_name: e.target.value })} />
-            <input style={styles.input} placeholder="Account Number" required onChange={(e) => setForm({ ...form, account_number: e.target.value })} />
             <input style={styles.input} placeholder="Phone Number" required onChange={(e) => setForm({ ...form, phone_number: e.target.value })} />
             <input style={styles.input} placeholder="Address" onChange={(e) => setForm({ ...form, address: e.target.value })} />
           </>

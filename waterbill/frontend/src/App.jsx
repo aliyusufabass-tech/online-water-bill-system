@@ -50,12 +50,16 @@ export default function App() {
 
   const adminOnlyPaths = ['/admin-dashboard', '/add-bill', '/admin-payments', '/admin-reports'];
   const customerOnlyPaths = ['/customer-dashboard', '/view-bills', '/history', '/payment', '/receipts'];
+  const handleAuthSuccess = async (authUser) => {
+    await loadMe();
+    navigate(authUser?.is_staff ? '/admin-dashboard' : '/customer-dashboard');
+  };
 
   if (!user && adminOnlyPaths.includes(path)) {
-    return <AuthPage error={error} role="admin" mode="login" onAuthenticated={() => { loadMe(); navigate('/admin-dashboard'); }} onNavigate={navigate} />;
+    return <AuthPage error={error} role="admin" mode="login" onAuthenticated={handleAuthSuccess} onNavigate={navigate} />;
   }
   if (!user && customerOnlyPaths.includes(path)) {
-    return <AuthPage error={error} role="customer" mode="login" onAuthenticated={() => { loadMe(); navigate('/customer-dashboard'); }} onNavigate={navigate} />;
+    return <AuthPage error={error} role="customer" mode="login" onAuthenticated={handleAuthSuccess} onNavigate={navigate} />;
   }
 
   if (user?.is_staff && customerOnlyPaths.includes(path)) {
@@ -70,16 +74,16 @@ export default function App() {
   }
 
   if (path === '/admin/login') {
-    return <AuthPage error={error} role="admin" mode="login" onAuthenticated={() => { loadMe(); navigate('/admin-dashboard'); }} onNavigate={navigate} />;
+    return <AuthPage error={error} role="admin" mode="login" onAuthenticated={handleAuthSuccess} onNavigate={navigate} />;
   }
   if (path === '/admin/register') {
-    return <AuthPage error={error} role="admin" mode="register" onAuthenticated={() => { loadMe(); navigate('/admin-dashboard'); }} onNavigate={navigate} />;
+    return <AuthPage error={error} role="admin" mode="register" onAuthenticated={handleAuthSuccess} onNavigate={navigate} />;
   }
   if (path === '/login') {
-    return <AuthPage error={error} role="customer" mode="login" onAuthenticated={() => { loadMe(); navigate('/customer-dashboard'); }} onNavigate={navigate} />;
+    return <AuthPage error={error} role="customer" mode="login" onAuthenticated={handleAuthSuccess} onNavigate={navigate} />;
   }
   if (path === '/register') {
-    return <AuthPage error={error} role="customer" mode="register" onAuthenticated={() => { loadMe(); navigate('/customer-dashboard'); }} onNavigate={navigate} />;
+    return <AuthPage error={error} role="customer" mode="register" onAuthenticated={handleAuthSuccess} onNavigate={navigate} />;
   }
 
   if (!user) {

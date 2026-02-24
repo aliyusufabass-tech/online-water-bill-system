@@ -15,13 +15,18 @@ export default function AuthPage({ error, role, mode, onAuthenticated, onNavigat
       <div style={styles.authWrap}>
         <h2 style={{ textAlign: 'center', marginTop: 0 }}>Online Water Bill Payment System</h2>
         {error && <p className="error">{error}</p>}
-        <AuthForm role={role} initialMode={mode} allowSwitch={false} onAuthenticated={onAuthenticated} />
+        <AuthForm
+          key={`${role}-${mode}`}
+          role={role}
+          initialMode={mode}
+          allowSwitch={false}
+          onAuthenticated={onAuthenticated}
+        />
         <div style={{ marginTop: 10 }}>
           <NavLink onNavigate={onNavigate} to="/home" label="Home" />
           {role === 'admin' ? (
             <>
               <NavLink onNavigate={onNavigate} to="/admin/login" label="Admin Login" />
-              <NavLink onNavigate={onNavigate} to="/admin/register" label="Admin Register" />
             </>
           ) : (
             <>

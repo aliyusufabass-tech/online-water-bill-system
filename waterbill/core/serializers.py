@@ -5,6 +5,25 @@ from rest_framework import serializers
 from .models import Bill, Payment, SystemProfile
 
 
+def _generate_account_number():
+    prefix = 'ACC'
+    next_number = 1
+
+    existing_accounts = SystemProfile.objects.filter(account_number__startswith=prefix).values_list(
+        'account_number', flat=True
+    )
+    for account in existing_accounts:
+        suffix = account[len(prefix) :]
+        if suffix.isdigit():
+            next_number = max(next_number, int(suffix) + 1)
+
+    candidate = f'{prefix}{next_number:03d}'
+    while SystemProfile.objects.filter(account_number=candidate).exists():
+        next_number += 1
+        candidate = f'{prefix}{next_number:03d}'
+    return candidate
+
+
 class UserSerializer(serializers.ModelSerializer):
     profile = serializers.SerializerMethodField()
 
@@ -30,7 +49,7 @@ class RegisterSerializer(serializers.Serializer):
     email = serializers.EmailField()
     password = serializers.CharField(min_length=6, write_only=True)
     full_name = serializers.CharField(max_length=120)
-    account_number = serializers.CharField(max_length=20)
+    account_number = serializers.CharField(max_length=20, required=False, allow_blank=True)
     phone_number = serializers.CharField(max_length=20)
     address = serializers.CharField(max_length=255, allow_blank=True, required=False)
 
@@ -39,7 +58,8 @@ class RegisterSerializer(serializers.Serializer):
             raise serializers.ValidationError({'username': 'Username already exists.'})
         if User.objects.filter(email=attrs['email']).exists():
             raise serializers.ValidationError({'email': 'Email already exists.'})
-        if SystemProfile.objects.filter(account_number=attrs['account_number']).exists():
+        account_number = attrs.get('account_number')
+        if account_number and SystemProfile.objects.filter(account_number=account_number).exists():
             raise serializers.ValidationError({'account_number': 'Account number already exists.'})
         return attrs
 
@@ -52,7 +72,7 @@ class RegisterSerializer(serializers.Serializer):
         SystemProfile.objects.create(
             user=user,
             full_name=validated_data['full_name'],
-            account_number=validated_data['account_number'],
+            account_number=_generate_account_number(),
             phone_number=validated_data['phone_number'],
             address=validated_data.get('address', ''),
         )
@@ -72,7 +92,7 @@ class AdminCreateUserSerializer(RegisterSerializer):
         SystemProfile.objects.create(
             user=user,
             full_name=validated_data['full_name'],
-            account_number=validated_data['account_number'],
+            account_number=_generate_account_number(),
             phone_number=validated_data['phone_number'],
             address=validated_data.get('address', ''),
         )
