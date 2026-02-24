@@ -1,0 +1,4 @@
+node_modules/
+waterbill/frontend/node_modules/
+waterbill/frontend/dist/
+dist/
