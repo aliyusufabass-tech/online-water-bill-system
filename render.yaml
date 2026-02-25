@@ -4,8 +4,8 @@ services:
     env: python
     plan: free
     rootDir: waterbill
-    buildCommand: pip install -r requirements.txt && python manage.py collectstatic --noinput && python manage.py migrate && python manage.py create_admin
-    startCommand: gunicorn waterbill.wsgi:application
+    buildCommand: pip install -r requirements.txt && python manage.py collectstatic --noinput && python manage.py migrate
+    startCommand: python manage.py migrate && python manage.py create_admin && gunicorn waterbill.wsgi:application
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.11
