@@ -49,10 +49,15 @@ async function request(path, options = {}, allowRefresh = true) {
   };
   if (access) headers.Authorization = `Bearer ${access}`;
 
-  const response = await fetch(`${API_BASE_URL}${path}`, {
-    ...options,
-    headers,
-  });
+  let response;
+  try {
+    response = await fetch(`${API_BASE_URL}${path}`, {
+      ...options,
+      headers,
+    });
+  } catch (error) {
+    throw new Error('Unable to reach the server. Check your API URL, CORS settings, and internet connection.');
+  }
 
   if (response.status === 401 && allowRefresh && getRefreshToken()) {
     const refreshed = await refreshAccessToken();
@@ -61,13 +66,23 @@ async function request(path, options = {}, allowRefresh = true) {
     }
   }
 
-  const data = await response.json().catch(() => ({}));
+  let data = {};
+  let rawText = '';
+  try {
+    data = await response.json();
+  } catch {
+    rawText = await response.text().catch(() => '');
+  }
+
   if (!response.ok) {
     if (typeof data.error === 'string') {
       throw new Error(data.error);
     }
     if (typeof data.detail === 'string') {
       throw new Error(data.detail);
+    }
+    if (typeof data.message === 'string') {
+      throw new Error(data.message);
     }
     if (data && typeof data === 'object') {
       const entries = Object.entries(data);
@@ -78,7 +93,10 @@ async function request(path, options = {}, allowRefresh = true) {
         throw new Error(`${field}: ${message}`);
       }
     }
-    throw new Error('Request failed');
+    if (rawText) {
+      throw new Error(rawText.slice(0, 200));
+    }
+    throw new Error(response.statusText || 'Request failed');
   }
   return data;
 }

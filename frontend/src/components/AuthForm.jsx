@@ -59,7 +59,11 @@ export default function AuthForm({ role = 'customer', initialMode = 'login', all
       setTokens(authResponse.tokens);
       await onAuthenticated?.(authResponse.user);
     } catch (err) {
-      setError(err.message);
+      const message =
+        err instanceof Error
+          ? err.message
+          : (typeof err === 'string' ? err : 'Registration failed. Please try again.');
+      setError(message);
     }
   };
 
