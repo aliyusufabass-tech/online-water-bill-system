@@ -4,7 +4,7 @@ services:
     env: python
     plan: free
     rootDir: waterbill
-    buildCommand: pip install -r requirements.txt && python manage.py collectstatic --noinput && python manage.py migrate
+    buildCommand: pip install -r requirements.txt && python manage.py collectstatic --noinput && python manage.py migrate && python manage.py create_admin
     startCommand: gunicorn waterbill.wsgi:application
     envVars:
       - key: PYTHON_VERSION
@@ -23,6 +23,12 @@ services:
         value: "http://localhost:5173,http://127.0.0.1:5173,https://online-water-bill-system.vercel.app"
       - key: CSRF_TRUSTED_ORIGINS
         value: "http://localhost:5173,http://127.0.0.1:5173,https://online-water-bill-system.vercel.app"
+      - key: ADMIN_USERNAME
+        value: "JITUNENE"
+      - key: ADMIN_EMAIL
+        value: "aliyusufabass@gmail.com"
+      - key: ADMIN_PASSWORD
+        value: "Yusuf@24"
 
 databases:
   - name: online-water-bill-db
