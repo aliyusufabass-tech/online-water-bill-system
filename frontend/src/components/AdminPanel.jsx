@@ -171,6 +171,7 @@ export default function AdminPanel({ currentUser, initialTab = 'dashboard', onNa
           body: JSON.stringify({
             ...(billForm.from_date && billForm.to_date ? { billing_period: `${billForm.from_date} to ${billForm.to_date}` } : {}),
             meter_reading: billForm.meter_reading,
+            ...(billForm.amount_input !== '' ? { amount_due: billForm.amount_input } : {}),
             ...(billForm.to_date ? { due_date: billForm.to_date } : {}),
           }),
         });
@@ -185,6 +186,7 @@ export default function AdminPanel({ currentUser, initialTab = 'dashboard', onNa
             account_number: billForm.account_number,
             billing_period: `${billForm.from_date} to ${billForm.to_date}`,
             meter_reading: billForm.meter_reading,
+            amount_due: billForm.amount_input,
             due_date: billForm.to_date,
           }),
         });
