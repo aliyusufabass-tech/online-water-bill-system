@@ -15,12 +15,14 @@ export default function AuthForm({ role = 'customer', initialMode = 'login', all
   const [mode, setMode] = useState(initialMode);
   const [error, setError] = useState('');
   const [form, setForm] = useState(emptyForm);
+  const [submitting, setSubmitting] = useState(false);
 
   const isRegister = mode === 'register';
   useEffect(() => {
     setMode(initialMode);
     setError('');
     setForm(emptyForm);
+    setSubmitting(false);
   }, [initialMode, role]);
 
   const authPath = useMemo(() => {
@@ -30,11 +32,14 @@ export default function AuthForm({ role = 'customer', initialMode = 'login', all
 
   const submit = async (e) => {
     e.preventDefault();
+    if (submitting) return;
     setError('');
+    setSubmitting(true);
 
     try {
       if (isRegister && form.password !== form.confirm_password) {
         setError('Password and Confirm Password must match.');
+        setSubmitting(false);
         return;
       }
 
@@ -64,6 +69,8 @@ export default function AuthForm({ role = 'customer', initialMode = 'login', all
           ? err.message
           : (typeof err === 'string' ? err : 'Registration failed. Please try again.');
       setError(message);
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -132,13 +139,15 @@ export default function AuthForm({ role = 'customer', initialMode = 'login', all
             color: '#fff',
             border: 'none',
             borderRadius: 8,
-            cursor: 'pointer',
+            cursor: submitting ? 'not-allowed' : 'pointer',
             fontWeight: 700,
             fontSize: 14,
+            opacity: submitting ? 0.7 : 1,
           }}
           type="submit"
+          disabled={submitting}
         >
-          {isRegister ? 'Create Account' : 'Login'}
+          {submitting ? 'Please wait...' : (isRegister ? 'Create Account' : 'Login')}
         </button>
       </form>
       {allowSwitch && (
@@ -151,9 +160,11 @@ export default function AuthForm({ role = 'customer', initialMode = 'login', all
             color: '#fff',
             border: 'none',
             borderRadius: 8,
-            cursor: 'pointer',
+            cursor: submitting ? 'not-allowed' : 'pointer',
+            opacity: submitting ? 0.7 : 1,
           }}
-          onClick={() => setMode(isRegister ? 'login' : 'register')}
+          onClick={() => !submitting && setMode(isRegister ? 'login' : 'register')}
+          disabled={submitting}
         >
           {isRegister ? 'Switch to Login' : 'Switch to Register'}
         </button>

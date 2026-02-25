@@ -16,12 +16,14 @@ export default function AuthForm({ role = 'customer', initialMode = 'login', all
   const [mode, setMode] = useState(initialMode);
   const [error, setError] = useState('');
   const [form, setForm] = useState(emptyForm);
+  const [submitting, setSubmitting] = useState(false);
 
   const isRegister = mode === 'register';
   useEffect(() => {
     setMode(initialMode);
     setError('');
     setForm(emptyForm);
+    setSubmitting(false);
   }, [initialMode, role]);
 
   const authPath = useMemo(() => {
@@ -31,11 +33,14 @@ export default function AuthForm({ role = 'customer', initialMode = 'login', all
 
   const submit = async (e) => {
     e.preventDefault();
+    if (submitting) return;
     setError('');
+    setSubmitting(true);
 
     try {
       if (isRegister && form.password !== form.confirm_password) {
         setError('Password and Confirm Password must match.');
+        setSubmitting(false);
         return;
       }
 
@@ -60,7 +65,13 @@ export default function AuthForm({ role = 'customer', initialMode = 'login', all
       setTokens(authResponse.tokens);
       await onAuthenticated?.(authResponse.user);
     } catch (err) {
-      setError(err.message);
+      const message =
+        err instanceof Error
+          ? err.message
+          : (typeof err === 'string' ? err : 'Registration failed. Please try again.');
+      setError(message);
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -80,10 +91,20 @@ export default function AuthForm({ role = 'customer', initialMode = 'login', all
           </>
         )}
         {error && <p className="error">{error}</p>}
-        <button style={styles.button} type="submit">{isRegister ? 'Create Account' : 'Login'}</button>
+        <button
+          style={{ ...styles.button, cursor: submitting ? 'not-allowed' : 'pointer', opacity: submitting ? 0.7 : 1 }}
+          type="submit"
+          disabled={submitting}
+        >
+          {submitting ? 'Please wait...' : (isRegister ? 'Create Account' : 'Login')}
+        </button>
       </form>
       {allowSwitch && (
-        <button style={{ ...styles.button, background: '#546a7b' }} onClick={() => setMode(isRegister ? 'login' : 'register')}>
+        <button
+          style={{ ...styles.button, background: '#546a7b', cursor: submitting ? 'not-allowed' : 'pointer', opacity: submitting ? 0.7 : 1 }}
+          onClick={() => !submitting && setMode(isRegister ? 'login' : 'register')}
+          disabled={submitting}
+        >
           {isRegister ? 'Switch to Login' : 'Switch to Register'}
         </button>
       )}
