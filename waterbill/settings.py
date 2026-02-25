@@ -38,7 +38,10 @@ def env_list(name, default=''):
 SECRET_KEY = os.getenv('SECRET_KEY', 'dev-only-secret-key-change-me')
 DEBUG = env_bool('DEBUG', False)
 
-ALLOWED_HOSTS = env_list('ALLOWED_HOSTS', 'localhost,127.0.0.1')
+ALLOWED_HOSTS = env_list(
+    'ALLOWED_HOSTS',
+    'localhost,127.0.0.1,your-app-name.onrender.com',
+)
 render_hostname = os.getenv('RENDER_EXTERNAL_HOSTNAME')
 if render_hostname and render_hostname not in ALLOWED_HOSTS:
     ALLOWED_HOSTS.append(render_hostname)
@@ -90,7 +93,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'waterbill.wsgi.application'
 
-DATABASE_URL = os.getenv('DATABASE_URL')
+DATABASE_URL = os.environ.get('DATABASE_URL')
 if DATABASE_URL:
     DATABASES = {
         'default': dj_database_url.config(
