@@ -1,0 +1,9 @@
+Django
+djangorestframework
+django-cors-headers
+Pillow
+reportlab
+psycopg2-binary
+gunicorn
+dj-database-url
+whitenoise
