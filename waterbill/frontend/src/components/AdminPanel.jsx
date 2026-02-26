@@ -71,6 +71,8 @@ function money(value) {
 }
 
 export default function AdminPanel({ currentUser, initialTab = 'dashboard', onNavigate, onLogout }) {
+  const [isMobile, setIsMobile] = useState(() => window.innerWidth <= 768);
+  const [menuOpen, setMenuOpen] = useState(false);
   const parseBillingPeriodRange = (billingPeriod, dueDate) => {
     const text = String(billingPeriod || '');
     const match = text.match(/^(\d{4}-\d{2}-\d{2})\s+to\s+(\d{4}-\d{2}-\d{2})$/);
@@ -109,6 +111,16 @@ export default function AdminPanel({ currentUser, initialTab = 'dashboard', onNa
 
   useEffect(() => setTab(initialTab), [initialTab]);
 
+  useEffect(() => {
+    const onResize = () => {
+      const mobile = window.innerWidth <= 768;
+      setIsMobile(mobile);
+      if (!mobile) setMenuOpen(false);
+    };
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
+
   const load = async () => {
     try {
       const [u, b, p] = await Promise.all([api('/admin/users/'), api('/admin/bills/'), api('/admin/payments/')]);
@@ -126,6 +138,7 @@ export default function AdminPanel({ currentUser, initialTab = 'dashboard', onNa
 
   const onTabChange = (nextTab) => {
     setTab(nextTab);
+    if (isMobile) setMenuOpen(false);
     if (onNavigate && TAB_TO_ROUTE[nextTab]) onNavigate(TAB_TO_ROUTE[nextTab]);
   };
 
@@ -277,8 +290,32 @@ export default function AdminPanel({ currentUser, initialTab = 'dashboard', onNa
   );
 
   return (
-    <div style={ui.shell}>
-      <aside style={ui.sidebar}>
+    <div style={{ ...ui.shell, position: 'relative', flexDirection: isMobile ? 'column' : 'row', minHeight: isMobile ? 'auto' : ui.shell.minHeight }}>
+      {isMobile && menuOpen && (
+        <div
+          onClick={() => setMenuOpen(false)}
+          style={{ position: 'fixed', inset: 0, background: 'rgba(8, 20, 36, 0.45)', zIndex: 20 }}
+        />
+      )}
+      <aside
+        style={
+          isMobile
+            ? {
+                ...ui.sidebar,
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                bottom: 0,
+                width: '82vw',
+                maxWidth: 300,
+                zIndex: 30,
+                transform: menuOpen ? 'translateX(0)' : 'translateX(-105%)',
+                transition: 'transform 180ms ease',
+                boxShadow: '0 10px 30px rgba(0,0,0,0.25)',
+              }
+            : ui.sidebar
+        }
+      >
         <h2 style={ui.brand}>Admin Panel</h2>
         <div style={ui.nav}>
           {[
@@ -298,7 +335,30 @@ export default function AdminPanel({ currentUser, initialTab = 'dashboard', onNa
         </div>
       </aside>
 
-      <section style={ui.content}>
+      <section style={{ ...ui.content, padding: isMobile ? 12 : ui.content.padding }}>
+        {isMobile && (
+          <div style={{ marginBottom: 12, display: 'flex', alignItems: 'center', gap: 10 }}>
+            <button
+              type="button"
+              onClick={() => setMenuOpen((v) => !v)}
+              aria-label="Toggle menu"
+              style={{
+                width: 42,
+                height: 42,
+                borderRadius: 10,
+                border: '1px solid #d8e1ea',
+                background: '#fff',
+                color: '#17314a',
+                fontSize: 22,
+                lineHeight: 1,
+                cursor: 'pointer',
+              }}
+            >
+              ≡
+            </button>
+            <strong style={{ color: '#17314a' }}>Menu</strong>
+          </div>
+        )}
         <div style={ui.header}>
           <h2 style={ui.title}>Admin Dashboard</h2>
     
@@ -333,7 +393,7 @@ export default function AdminPanel({ currentUser, initialTab = 'dashboard', onNa
                 <h3 style={ui.sectionTitle}>Payments Overview</h3>
               </div>
               <div style={ui.sectionBody}>
-                <div style={ui.chartWrap}>
+                <div style={{ ...ui.chartWrap, gridTemplateColumns: isMobile ? '1fr' : ui.chartWrap.gridTemplateColumns }}>
                   {chartBars.map((bar) => {
                     const pct = Math.max(4, (Number(bar.value || 0) / maxChartValue) * 100);
                     return (

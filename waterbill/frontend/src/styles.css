@@ -40,6 +40,19 @@ body {
   }
 }
 
+@media (max-width: 768px) {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  input,
+  select,
+  textarea,
+  button {
+    font-size: 16px !important;
+  }
+}
+
 .card {
   background: #ffffff;
   border: 1px solid #d6e2ef;

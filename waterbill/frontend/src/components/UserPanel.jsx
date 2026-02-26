@@ -66,6 +66,8 @@ function money(value) {
 }
 
 export default function UserPanel({ user, onLogout, initialTab = 'dashboard', onNavigate }) {
+  const [isMobile, setIsMobile] = useState(() => window.innerWidth <= 768);
+  const [menuOpen, setMenuOpen] = useState(false);
   const normalizeTab = (value) => (value === 'profile' || value === 'bills' ? 'dashboard' : value);
   const [tab, setTab] = useState(normalizeTab(initialTab));
   const [profile, setProfile] = useState(null);
@@ -78,6 +80,16 @@ export default function UserPanel({ user, onLogout, initialTab = 'dashboard', on
   const [info, setInfo] = useState('');
 
   useEffect(() => setTab(normalizeTab(initialTab)), [initialTab]);
+
+  useEffect(() => {
+    const onResize = () => {
+      const mobile = window.innerWidth <= 768;
+      setIsMobile(mobile);
+      if (!mobile) setMenuOpen(false);
+    };
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
 
   const load = async () => {
     try {
@@ -97,6 +109,7 @@ export default function UserPanel({ user, onLogout, initialTab = 'dashboard', on
 
   const onTabChange = (nextTab) => {
     setTab(nextTab);
+    if (isMobile) setMenuOpen(false);
     if (onNavigate && TAB_TO_ROUTE[nextTab]) onNavigate(TAB_TO_ROUTE[nextTab]);
   };
 
@@ -118,8 +131,32 @@ export default function UserPanel({ user, onLogout, initialTab = 'dashboard', on
   const totalPaid = receipts.reduce((sum, item) => sum + Number(item.amount || 0), 0);
 
   return (
-    <div style={ui.shell}>
-      <aside style={ui.sidebar}>
+    <div style={{ ...ui.shell, position: 'relative', flexDirection: isMobile ? 'column' : 'row', minHeight: isMobile ? 'auto' : ui.shell.minHeight }}>
+      {isMobile && menuOpen && (
+        <div
+          onClick={() => setMenuOpen(false)}
+          style={{ position: 'fixed', inset: 0, background: 'rgba(8, 20, 36, 0.45)', zIndex: 20 }}
+        />
+      )}
+      <aside
+        style={
+          isMobile
+            ? {
+                ...ui.sidebar,
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                bottom: 0,
+                width: '82vw',
+                maxWidth: 300,
+                zIndex: 30,
+                transform: menuOpen ? 'translateX(0)' : 'translateX(-105%)',
+                transition: 'transform 180ms ease',
+                boxShadow: '0 10px 30px rgba(0,0,0,0.25)',
+              }
+            : ui.sidebar
+        }
+      >
         <h2 style={ui.brand}>Water Bill</h2>
         <div style={ui.nav}>
           {[
@@ -140,7 +177,30 @@ export default function UserPanel({ user, onLogout, initialTab = 'dashboard', on
         )}
       </aside>
 
-      <section style={ui.content}>
+      <section style={{ ...ui.content, padding: isMobile ? 12 : ui.content.padding }}>
+        {isMobile && (
+          <div style={{ marginBottom: 12, display: 'flex', alignItems: 'center', gap: 10 }}>
+            <button
+              type="button"
+              onClick={() => setMenuOpen((v) => !v)}
+              aria-label="Toggle menu"
+              style={{
+                width: 42,
+                height: 42,
+                borderRadius: 10,
+                border: '1px solid #d8e1ea',
+                background: '#fff',
+                color: '#17314a',
+                fontSize: 22,
+                lineHeight: 1,
+                cursor: 'pointer',
+              }}
+            >
+              ≡
+            </button>
+            <strong style={{ color: '#17314a' }}>Menu</strong>
+          </div>
+        )}
         <div style={ui.header}>
           <h1 style={ui.title}>Welcome, {user?.username || 'User'}</h1>
           <p style={ui.subtitle}>Manage your water bills, payments, and receipts.</p>
