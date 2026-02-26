@@ -129,18 +129,28 @@ class LogoutAPIView(APIView):
 
 class MeAPIView(APIView):
     permission_classes = [permissions.AllowAny]
+    authentication_classes = []
 
     def get(self, request):
-        if not request.user or not request.user.is_authenticated:
+        auth_header = request.headers.get('Authorization', '')
+        user = None
+
+        if auth_header.startswith('Bearer '):
+            token = auth_header.split(' ', 1)[1].strip()
+            payload = jwt_decode(token)
+            if payload and payload.get('type') == 'access':
+                user = User.objects.filter(id=payload.get('sub')).first()
+
+        if not user:
             return Response({'authenticated': False})
 
-        profile = getattr(request.user, 'profile', None)
+        profile = getattr(user, 'profile', None)
         return Response(
             {
                 'authenticated': True,
-                'username': request.user.username,
-                'email': request.user.email,
-                'is_staff': request.user.is_staff,
+                'username': user.username,
+                'email': user.email,
+                'is_staff': user.is_staff,
                 'profile': SystemProfileSerializer(profile).data if profile else None,
             }
         )

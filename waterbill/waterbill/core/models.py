@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from django.db import models
 from django.contrib.auth.models import User
 
@@ -5,16 +7,58 @@ from django.contrib.auth.models import User
 class SystemProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
     full_name = models.CharField(max_length=120)
-    account_number = models.CharField(max_length=20, unique=True)
+    account_number = models.CharField(max_length=20, unique=True, blank=True)
+    meter_number = models.CharField(max_length=20, unique=True, blank=True)
     phone_number = models.CharField(max_length=20)
     address = models.CharField(max_length=255, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
+    def save(self, *args, **kwargs):
+        if not self.account_number:
+            self.account_number = self._generate_unique_account_number()
+        if not self.meter_number:
+            self.meter_number = self._generate_unique_meter_number()
+        super().save(*args, **kwargs)
+
+    @classmethod
+    def _generate_unique_account_number(cls):
+        prefix = 'ACC'
+        next_number = 1
+        existing_accounts = cls.objects.filter(account_number__startswith=prefix).values_list('account_number', flat=True)
+        for account_number in existing_accounts:
+            suffix = account_number[len(prefix) :]
+            if suffix.isdigit():
+                next_number = max(next_number, int(suffix) + 1)
+
+        candidate = f'{prefix}{next_number:03d}'
+        while cls.objects.filter(account_number=candidate).exists():
+            next_number += 1
+            candidate = f'{prefix}{next_number:03d}'
+        return candidate
+
+    @classmethod
+    def _generate_unique_meter_number(cls):
+        prefix = 'MTR'
+        next_number = 1
+        existing_numbers = cls.objects.filter(meter_number__startswith=prefix).values_list('meter_number', flat=True)
+        for meter_number in existing_numbers:
+            suffix = meter_number[len(prefix) :]
+            if suffix.isdigit():
+                next_number = max(next_number, int(suffix) + 1)
+
+        candidate = f'{prefix}{next_number:06d}'
+        while cls.objects.filter(meter_number=candidate).exists():
+            next_number += 1
+            candidate = f'{prefix}{next_number:06d}'
+        return candidate
+
     def __str__(self):
-        return f'{self.full_name} ({self.account_number})'
+        return f'{self.full_name} | {self.user.username} | {self.account_number} | {self.meter_number}'
 
 
 class Bill(models.Model):
+    RATE_PER_UNIT = Decimal('100.00')
+
     STATUS_UNPAID = 'unpaid'
     STATUS_PENDING = 'pending'
     STATUS_PAID = 'paid'
@@ -36,6 +80,11 @@ class Bill(models.Model):
 
     class Meta:
         ordering = ['-created_at']
+
+    def save(self, *args, **kwargs):
+        reading = self.meter_reading or Decimal('0.00')
+        self.amount_due = reading * self.RATE_PER_UNIT
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f'{self.profile.account_number} - {self.billing_period}'
