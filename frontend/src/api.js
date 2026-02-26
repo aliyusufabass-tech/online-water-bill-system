@@ -31,9 +31,9 @@ async function refreshAccessToken() {
   let response;
   try {
     response = await fetch(`${API_BASE_URL}/token/refresh/`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ refresh }),
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ refresh }),
       signal: controller.signal,
     });
   } finally {
@@ -58,10 +58,10 @@ async function request(path, options = {}, allowRefresh = true) {
   };
   if (access) headers.Authorization = `Bearer ${access}`;
 
+  let response;
   const timeoutMs = options.timeoutMs ?? 20000;
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
-  let response;
   try {
     response = await fetch(`${API_BASE_URL}${path}`, {
       ...options,
