@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
 import { api, setTokens } from '../api';
-import { styles } from '../uiStyles';
 
 const emptyForm = {
   username: '',
@@ -76,23 +75,75 @@ export default function AuthForm({ role = 'customer', initialMode = 'login', all
   };
 
   return (
-    <div style={styles.compactCard}>
-      <h3>{role === 'admin' ? `Admin ${isRegister ? 'Register' : 'Login'}` : `Customer ${isRegister ? 'Register' : 'Login'}`}</h3>
+    <div>
       <form onSubmit={submit}>
-        <input style={styles.input} placeholder="Username" required onChange={(e) => setForm({ ...form, username: e.target.value })} />
-        {isRegister && <input style={styles.input} placeholder="Email" type="email" required onChange={(e) => setForm({ ...form, email: e.target.value })} />}
-        <input style={styles.input} placeholder="Password" type="password" required onChange={(e) => setForm({ ...form, password: e.target.value })} />
-        {isRegister && <input style={styles.input} placeholder="Confirm Password" type="password" required onChange={(e) => setForm({ ...form, confirm_password: e.target.value })} />}
+        <input
+          style={{ width: '100%', padding: '11px 12px', margin: '8px 0', border: '1px solid #c8d3df', borderRadius: 8, fontSize: 14 }}
+          placeholder="Username"
+          required
+          onChange={(e) => setForm({ ...form, username: e.target.value })}
+        />
+        {isRegister && (
+          <input
+            style={{ width: '100%', padding: '11px 12px', margin: '8px 0', border: '1px solid #c8d3df', borderRadius: 8, fontSize: 14 }}
+            placeholder="Email"
+            type="email"
+            required
+            onChange={(e) => setForm({ ...form, email: e.target.value })}
+          />
+        )}
+        <input
+          style={{ width: '100%', padding: '11px 12px', margin: '8px 0', border: '1px solid #c8d3df', borderRadius: 8, fontSize: 14 }}
+          placeholder="Password"
+          type="password"
+          required
+          onChange={(e) => setForm({ ...form, password: e.target.value })}
+        />
+        {isRegister && (
+          <input
+            style={{ width: '100%', padding: '11px 12px', margin: '8px 0', border: '1px solid #c8d3df', borderRadius: 8, fontSize: 14 }}
+            placeholder="Confirm Password"
+            type="password"
+            required
+            onChange={(e) => setForm({ ...form, confirm_password: e.target.value })}
+          />
+        )}
         {isRegister && (
           <>
-            <input style={styles.input} placeholder="Full Name" required onChange={(e) => setForm({ ...form, full_name: e.target.value })} />
-            <input style={styles.input} placeholder="Phone Number" required onChange={(e) => setForm({ ...form, phone_number: e.target.value })} />
-            <input style={styles.input} placeholder="Address" onChange={(e) => setForm({ ...form, address: e.target.value })} />
+            <input
+              style={{ width: '100%', padding: '11px 12px', margin: '8px 0', border: '1px solid #c8d3df', borderRadius: 8, fontSize: 14 }}
+              placeholder="Full Name"
+              required
+              onChange={(e) => setForm({ ...form, full_name: e.target.value })}
+            />
+            <input
+              style={{ width: '100%', padding: '11px 12px', margin: '8px 0', border: '1px solid #c8d3df', borderRadius: 8, fontSize: 14 }}
+              placeholder="Phone Number"
+              required
+              onChange={(e) => setForm({ ...form, phone_number: e.target.value })}
+            />
+            <input
+              style={{ width: '100%', padding: '11px 12px', margin: '8px 0', border: '1px solid #c8d3df', borderRadius: 8, fontSize: 14 }}
+              placeholder="Address"
+              onChange={(e) => setForm({ ...form, address: e.target.value })}
+            />
           </>
         )}
-        {error && <p className="error">{error}</p>}
+        {error && <p className="error" style={{ marginBottom: 10 }}>{error}</p>}
         <button
-          style={{ ...styles.button, cursor: submitting ? 'not-allowed' : 'pointer', opacity: submitting ? 0.7 : 1 }}
+          style={{
+            width: '100%',
+            padding: '11px 12px',
+            marginTop: 8,
+            background: '#0d6efd',
+            color: '#fff',
+            border: 'none',
+            borderRadius: 8,
+            cursor: submitting ? 'not-allowed' : 'pointer',
+            fontWeight: 700,
+            fontSize: 14,
+            opacity: submitting ? 0.7 : 1,
+          }}
           type="submit"
           disabled={submitting}
         >
@@ -101,7 +152,17 @@ export default function AuthForm({ role = 'customer', initialMode = 'login', all
       </form>
       {allowSwitch && (
         <button
-          style={{ ...styles.button, background: '#546a7b', cursor: submitting ? 'not-allowed' : 'pointer', opacity: submitting ? 0.7 : 1 }}
+          style={{
+            width: '100%',
+            padding: '10px 12px',
+            marginTop: 10,
+            background: '#6c757d',
+            color: '#fff',
+            border: 'none',
+            borderRadius: 8,
+            cursor: submitting ? 'not-allowed' : 'pointer',
+            opacity: submitting ? 0.7 : 1,
+          }}
           onClick={() => !submitting && setMode(isRegister ? 'login' : 'register')}
           disabled={submitting}
         >

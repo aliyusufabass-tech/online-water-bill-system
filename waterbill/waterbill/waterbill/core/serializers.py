@@ -5,6 +5,25 @@ from rest_framework import serializers
 from .models import Bill, Payment, SystemProfile
 
 
+def _generate_account_number():
+    prefix = 'ACC'
+    next_number = 1
+
+    existing_accounts = SystemProfile.objects.filter(account_number__startswith=prefix).values_list(
+        'account_number', flat=True
+    )
+    for account in existing_accounts:
+        suffix = account[len(prefix) :]
+        if suffix.isdigit():
+            next_number = max(next_number, int(suffix) + 1)
+
+    candidate = f'{prefix}{next_number:03d}'
+    while SystemProfile.objects.filter(account_number=candidate).exists():
+        next_number += 1
+        candidate = f'{prefix}{next_number:03d}'
+    return candidate
+
+
 class UserSerializer(serializers.ModelSerializer):
     profile = serializers.SerializerMethodField()
 
@@ -22,7 +41,7 @@ class UserSerializer(serializers.ModelSerializer):
 class SystemProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = SystemProfile
-        fields = ['id', 'full_name', 'account_number', 'meter_number', 'phone_number', 'address']
+        fields = ['id', 'full_name', 'account_number', 'phone_number', 'address']
 
 
 class RegisterSerializer(serializers.Serializer):
@@ -30,6 +49,7 @@ class RegisterSerializer(serializers.Serializer):
     email = serializers.EmailField()
     password = serializers.CharField(min_length=6, write_only=True)
     full_name = serializers.CharField(max_length=120)
+    account_number = serializers.CharField(max_length=20, required=False, allow_blank=True)
     phone_number = serializers.CharField(max_length=20)
     address = serializers.CharField(max_length=255, allow_blank=True, required=False)
 
@@ -38,6 +58,9 @@ class RegisterSerializer(serializers.Serializer):
             raise serializers.ValidationError({'username': 'Username already exists.'})
         if User.objects.filter(email=attrs['email']).exists():
             raise serializers.ValidationError({'email': 'Email already exists.'})
+        account_number = attrs.get('account_number')
+        if account_number and SystemProfile.objects.filter(account_number=account_number).exists():
+            raise serializers.ValidationError({'account_number': 'Account number already exists.'})
         return attrs
 
     def create(self, validated_data):
@@ -49,6 +72,7 @@ class RegisterSerializer(serializers.Serializer):
         SystemProfile.objects.create(
             user=user,
             full_name=validated_data['full_name'],
+            account_number=_generate_account_number(),
             phone_number=validated_data['phone_number'],
             address=validated_data.get('address', ''),
         )
@@ -68,6 +92,7 @@ class AdminCreateUserSerializer(RegisterSerializer):
         SystemProfile.objects.create(
             user=user,
             full_name=validated_data['full_name'],
+            account_number=_generate_account_number(),
             phone_number=validated_data['phone_number'],
             address=validated_data.get('address', ''),
         )
@@ -92,7 +117,6 @@ class RefreshTokenSerializer(serializers.Serializer):
 
 class BillSerializer(serializers.ModelSerializer):
     account_number = serializers.CharField(source='profile.account_number', read_only=True)
-    meter_number = serializers.CharField(source='profile.meter_number', read_only=True)
     full_name = serializers.CharField(source='profile.full_name', read_only=True)
 
     class Meta:
@@ -100,7 +124,6 @@ class BillSerializer(serializers.ModelSerializer):
         fields = [
             'id',
             'account_number',
-            'meter_number',
             'full_name',
             'billing_period',
             'meter_reading',
@@ -114,6 +137,7 @@ class AdminCreateBillSerializer(serializers.Serializer):
     account_number = serializers.CharField(max_length=20)
     billing_period = serializers.CharField(max_length=30)
     meter_reading = serializers.DecimalField(max_digits=10, decimal_places=2)
+    amount_due = serializers.DecimalField(max_digits=10, decimal_places=2)
     due_date = serializers.DateField()
 
     def validate_account_number(self, value):
@@ -127,7 +151,7 @@ class AdminCreateBillSerializer(serializers.Serializer):
             profile=profile,
             billing_period=validated_data['billing_period'],
             meter_reading=validated_data['meter_reading'],
-            amount_due=0,
+            amount_due=validated_data['amount_due'],
             due_date=validated_data['due_date'],
         )
 
@@ -136,7 +160,6 @@ class AdminUpdateBillSerializer(serializers.ModelSerializer):
     class Meta:
         model = Bill
         fields = ['billing_period', 'meter_reading', 'amount_due', 'due_date']
-        read_only_fields = ['amount_due']
 
 
 class PaymentSerializer(serializers.ModelSerializer):

@@ -1,4 +1,6 @@
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL ||
+  (import.meta.env.PROD ? 'https://online-water-bill-api.onrender.com/api' : '/api');
 const ACCESS_KEY = 'waterbill_access_token';
 const REFRESH_KEY = 'waterbill_refresh_token';
 
