@@ -71,8 +71,10 @@ function money(value) {
 }
 
 export default function AdminPanel({ currentUser, initialTab = 'dashboard', onNavigate, onLogout }) {
+  const [viewportWidth, setViewportWidth] = useState(() => window.innerWidth);
   const [isMobile, setIsMobile] = useState(() => window.innerWidth <= 768);
   const [menuOpen, setMenuOpen] = useState(false);
+  const isPhone13 = viewportWidth <= 390;
   const parseBillingPeriodRange = (billingPeriod, dueDate) => {
     const text = String(billingPeriod || '');
     const match = text.match(/^(\d{4}-\d{2}-\d{2})\s+to\s+(\d{4}-\d{2}-\d{2})$/);
@@ -113,6 +115,7 @@ export default function AdminPanel({ currentUser, initialTab = 'dashboard', onNa
 
   useEffect(() => {
     const onResize = () => {
+      setViewportWidth(window.innerWidth);
       const mobile = window.innerWidth <= 768;
       setIsMobile(mobile);
       if (!mobile) setMenuOpen(false);
@@ -290,7 +293,16 @@ export default function AdminPanel({ currentUser, initialTab = 'dashboard', onNa
   );
 
   return (
-    <div style={{ ...ui.shell, position: 'relative', flexDirection: isMobile ? 'column' : 'row', minHeight: isMobile ? 'auto' : ui.shell.minHeight }}>
+    <div
+      style={{
+        ...ui.shell,
+        position: 'relative',
+        flexDirection: isMobile ? 'column' : 'row',
+        minHeight: isMobile ? 'auto' : ui.shell.minHeight,
+        borderRadius: isMobile ? 12 : ui.shell.borderRadius,
+        width: '100%',
+      }}
+    >
       {isMobile && menuOpen && (
         <div
           onClick={() => setMenuOpen(false)}
@@ -306,7 +318,7 @@ export default function AdminPanel({ currentUser, initialTab = 'dashboard', onNa
                 top: 0,
                 left: 0,
                 bottom: 0,
-                width: '82vw',
+                width: isPhone13 ? '88vw' : '82vw',
                 maxWidth: 300,
                 zIndex: 30,
                 transform: menuOpen ? 'translateX(0)' : 'translateX(-105%)',
@@ -316,7 +328,9 @@ export default function AdminPanel({ currentUser, initialTab = 'dashboard', onNa
             : ui.sidebar
         }
       >
-        <h2 style={ui.brand}>Admin Panel</h2>
+        <h2 style={{ ...ui.brand, fontSize: isPhone13 ? 18 : ui.brand.fontSize, padding: isPhone13 ? '16px 14px' : ui.brand.padding }}>
+          Admin Panel
+        </h2>
         <div style={ui.nav}>
           {[
             ['dashboard', 'Dashboard'],
@@ -324,7 +338,15 @@ export default function AdminPanel({ currentUser, initialTab = 'dashboard', onNa
             ['bills', editingBill ? 'Edit / Add Bill' : 'Add Bill'],
             ['reports', 'Reports'],
           ].map(([key, label]) => (
-            <button key={key} style={tab === key ? ui.navBtnActive : ui.navBtn} onClick={() => onTabChange(key)}>
+            <button
+              key={key}
+              style={{
+                ...(tab === key ? ui.navBtnActive : ui.navBtn),
+                fontSize: isPhone13 ? 13 : 14,
+                padding: isPhone13 ? '10px 12px' : '12px 14px',
+              }}
+              onClick={() => onTabChange(key)}
+            >
               {label}
             </button>
           ))}
@@ -335,7 +357,7 @@ export default function AdminPanel({ currentUser, initialTab = 'dashboard', onNa
         </div>
       </aside>
 
-      <section style={{ ...ui.content, padding: isMobile ? 12 : ui.content.padding }}>
+      <section style={{ ...ui.content, padding: isMobile ? (isPhone13 ? 8 : 12) : ui.content.padding }}>
         {isMobile && (
           <div style={{ marginBottom: 12, display: 'flex', alignItems: 'center', gap: 10 }}>
             <button
@@ -359,15 +381,15 @@ export default function AdminPanel({ currentUser, initialTab = 'dashboard', onNa
             <strong style={{ color: '#17314a' }}>Menu</strong>
           </div>
         )}
-        <div style={ui.header}>
-          <h2 style={ui.title}>Admin Dashboard</h2>
+        <div style={{ ...ui.header, marginBottom: isPhone13 ? 12 : ui.header.marginBottom }}>
+          <h2 style={{ ...ui.title, fontSize: isPhone13 ? 22 : ui.title.fontSize }}>Admin Dashboard</h2>
     
         </div>
 
         {info && <div style={ui.alert}><p className="success" style={{ margin: 0 }}>{info}</p></div>}
         {error && <div style={ui.alert}><p className="error" style={{ margin: 0 }}>{error}</p></div>}
 
-        <div style={ui.cards}>
+        <div style={{ ...ui.cards, gridTemplateColumns: isPhone13 ? '1fr' : ui.cards.gridTemplateColumns, gap: isPhone13 ? 10 : ui.cards.gap }}>
           <div style={{ ...ui.card, ...ui.cardUsers }}>
             <p style={ui.cardLabel}>Total Users</p>
             <p style={ui.cardValue}>{customersCount}</p>
@@ -389,8 +411,8 @@ export default function AdminPanel({ currentUser, initialTab = 'dashboard', onNa
         {tab === 'dashboard' && (
           <>
             <div style={ui.section}>
-              <div style={ui.sectionHead}>
-                <h3 style={ui.sectionTitle}>Payments Overview</h3>
+              <div style={{ ...ui.sectionHead, flexDirection: isPhone13 ? 'column' : 'row', alignItems: isPhone13 ? 'flex-start' : ui.sectionHead.alignItems, gap: isPhone13 ? 6 : 0 }}>
+                <h3 style={{ ...ui.sectionTitle, fontSize: isPhone13 ? 16 : ui.sectionTitle.fontSize }}>Payments Overview</h3>
               </div>
               <div style={ui.sectionBody}>
                 <div style={{ ...ui.chartWrap, gridTemplateColumns: isMobile ? '1fr' : ui.chartWrap.gridTemplateColumns }}>
@@ -411,12 +433,12 @@ export default function AdminPanel({ currentUser, initialTab = 'dashboard', onNa
             </div>
 
             <div style={ui.section}>
-              <div style={ui.sectionHead}>
-                <h3 style={ui.sectionTitle}>Add User / Customer</h3>
+              <div style={{ ...ui.sectionHead, flexDirection: isPhone13 ? 'column' : 'row', alignItems: isPhone13 ? 'flex-start' : ui.sectionHead.alignItems, gap: isPhone13 ? 6 : 0 }}>
+                <h3 style={{ ...ui.sectionTitle, fontSize: isPhone13 ? 16 : ui.sectionTitle.fontSize }}>Add User / Customer</h3>
               </div>
               <div style={ui.sectionBody}>
                 <form onSubmit={createUser}>
-                  <div style={ui.formGrid}>
+                  <div style={{ ...ui.formGrid, gridTemplateColumns: isPhone13 ? '1fr' : ui.formGrid.gridTemplateColumns }}>
                     <div style={ui.field}>
                       <label>Username</label>
                       <input style={ui.input} required value={userForm.username} onChange={(e) => setUserForm({ ...userForm, username: e.target.value })} />
@@ -455,8 +477,8 @@ export default function AdminPanel({ currentUser, initialTab = 'dashboard', onNa
             </div>
 
             <div style={ui.section}>
-              <div style={ui.sectionHead}>
-                <h3 style={ui.sectionTitle}>All Users</h3>
+              <div style={{ ...ui.sectionHead, flexDirection: isPhone13 ? 'column' : 'row', alignItems: isPhone13 ? 'flex-start' : ui.sectionHead.alignItems, gap: isPhone13 ? 6 : 0 }}>
+                <h3 style={{ ...ui.sectionTitle, fontSize: isPhone13 ? 16 : ui.sectionTitle.fontSize }}>All Users</h3>
               </div>
               <div style={ui.tableWrap}>
                 <table style={ui.table}>
@@ -497,8 +519,8 @@ export default function AdminPanel({ currentUser, initialTab = 'dashboard', onNa
 
         {tab === 'payments' && (
           <div style={ui.section}>
-            <div style={ui.sectionHead}>
-              <h3 style={ui.sectionTitle}>Pending Payments (Approve / Reject / Delete)</h3>
+              <div style={{ ...ui.sectionHead, flexDirection: isPhone13 ? 'column' : 'row', alignItems: isPhone13 ? 'flex-start' : ui.sectionHead.alignItems, gap: isPhone13 ? 6 : 0 }}>
+                <h3 style={{ ...ui.sectionTitle, fontSize: isPhone13 ? 16 : ui.sectionTitle.fontSize }}>Pending Payments (Approve / Reject / Delete)</h3>
             </div>
             <div style={ui.tableWrap}>
               <table style={ui.table}>
@@ -545,12 +567,12 @@ export default function AdminPanel({ currentUser, initialTab = 'dashboard', onNa
         {tab === 'bills' && (
           <>
             <div style={ui.section}>
-              <div style={ui.sectionHead}>
-                <h3 style={ui.sectionTitle}>{editingBill ? 'Edit Bill' : 'Add Bill'}</h3>
+              <div style={{ ...ui.sectionHead, flexDirection: isPhone13 ? 'column' : 'row', alignItems: isPhone13 ? 'flex-start' : ui.sectionHead.alignItems, gap: isPhone13 ? 6 : 0 }}>
+                <h3 style={{ ...ui.sectionTitle, fontSize: isPhone13 ? 16 : ui.sectionTitle.fontSize }}>{editingBill ? 'Edit Bill' : 'Add Bill'}</h3>
               </div>
               <div style={ui.sectionBody}>
                 <form onSubmit={saveBill}>
-                  <div style={ui.formGrid}>
+                  <div style={{ ...ui.formGrid, gridTemplateColumns: isPhone13 ? '1fr' : ui.formGrid.gridTemplateColumns }}>
                     <div style={{ ...ui.field, ...ui.fullRow }}>
                       <label>User</label>
                       {!editingBill ? (
@@ -619,8 +641,8 @@ export default function AdminPanel({ currentUser, initialTab = 'dashboard', onNa
             </div>
 
             <div style={ui.section}>
-              <div style={ui.sectionHead}>
-                <h3 style={ui.sectionTitle}>All Bills (Edit / Delete)</h3>
+              <div style={{ ...ui.sectionHead, flexDirection: isPhone13 ? 'column' : 'row', alignItems: isPhone13 ? 'flex-start' : ui.sectionHead.alignItems, gap: isPhone13 ? 6 : 0 }}>
+                <h3 style={{ ...ui.sectionTitle, fontSize: isPhone13 ? 16 : ui.sectionTitle.fontSize }}>All Bills (Edit / Delete)</h3>
               </div>
               <div style={ui.tableWrap}>
                 <table style={ui.table}>
@@ -661,8 +683,8 @@ export default function AdminPanel({ currentUser, initialTab = 'dashboard', onNa
         {tab === 'reports' && (
           <>
             <div style={ui.section}>
-              <div style={ui.sectionHead}>
-                <h3 style={ui.sectionTitle}>Revenue Report</h3>
+              <div style={{ ...ui.sectionHead, flexDirection: isPhone13 ? 'column' : 'row', alignItems: isPhone13 ? 'flex-start' : ui.sectionHead.alignItems, gap: isPhone13 ? 6 : 0 }}>
+                <h3 style={{ ...ui.sectionTitle, fontSize: isPhone13 ? 16 : ui.sectionTitle.fontSize }}>Revenue Report</h3>
               </div>
               <div style={ui.sectionBody}>
                 <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', marginBottom: 12 }}>

@@ -66,8 +66,10 @@ function money(value) {
 }
 
 export default function UserPanel({ user, onLogout, initialTab = 'dashboard', onNavigate }) {
+  const [viewportWidth, setViewportWidth] = useState(() => window.innerWidth);
   const [isMobile, setIsMobile] = useState(() => window.innerWidth <= 768);
   const [menuOpen, setMenuOpen] = useState(false);
+  const isPhone13 = viewportWidth <= 390;
   const normalizeTab = (value) => (value === 'profile' || value === 'bills' ? 'dashboard' : value);
   const [tab, setTab] = useState(normalizeTab(initialTab));
   const [profile, setProfile] = useState(null);
@@ -83,6 +85,7 @@ export default function UserPanel({ user, onLogout, initialTab = 'dashboard', on
 
   useEffect(() => {
     const onResize = () => {
+      setViewportWidth(window.innerWidth);
       const mobile = window.innerWidth <= 768;
       setIsMobile(mobile);
       if (!mobile) setMenuOpen(false);
@@ -131,7 +134,16 @@ export default function UserPanel({ user, onLogout, initialTab = 'dashboard', on
   const totalPaid = receipts.reduce((sum, item) => sum + Number(item.amount || 0), 0);
 
   return (
-    <div style={{ ...ui.shell, position: 'relative', flexDirection: isMobile ? 'column' : 'row', minHeight: isMobile ? 'auto' : ui.shell.minHeight }}>
+    <div
+      style={{
+        ...ui.shell,
+        position: 'relative',
+        flexDirection: isMobile ? 'column' : 'row',
+        minHeight: isMobile ? 'auto' : ui.shell.minHeight,
+        borderRadius: isMobile ? 12 : ui.shell.borderRadius,
+        width: '100%',
+      }}
+    >
       {isMobile && menuOpen && (
         <div
           onClick={() => setMenuOpen(false)}
@@ -147,7 +159,7 @@ export default function UserPanel({ user, onLogout, initialTab = 'dashboard', on
                 top: 0,
                 left: 0,
                 bottom: 0,
-                width: '82vw',
+                width: isPhone13 ? '88vw' : '82vw',
                 maxWidth: 300,
                 zIndex: 30,
                 transform: menuOpen ? 'translateX(0)' : 'translateX(-105%)',
@@ -157,7 +169,9 @@ export default function UserPanel({ user, onLogout, initialTab = 'dashboard', on
             : ui.sidebar
         }
       >
-        <h2 style={ui.brand}>Water Bill</h2>
+        <h2 style={{ ...ui.brand, fontSize: isPhone13 ? 18 : ui.brand.fontSize, padding: isPhone13 ? '16px 14px' : ui.brand.padding }}>
+          Water Bill
+        </h2>
         <div style={ui.nav}>
           {[
             ['dashboard', 'Dashboard'],
@@ -165,7 +179,15 @@ export default function UserPanel({ user, onLogout, initialTab = 'dashboard', on
             ['history', 'Payment History'],
             ['receipts', 'Receipts'],
           ].map(([key, label]) => (
-            <button key={key} style={tab === key ? ui.navBtnActive : ui.navBtn} onClick={() => onTabChange(key)}>
+            <button
+              key={key}
+              style={{
+                ...(tab === key ? ui.navBtnActive : ui.navBtn),
+                fontSize: isPhone13 ? 13 : 14,
+                padding: isPhone13 ? '10px 12px' : '12px 14px',
+              }}
+              onClick={() => onTabChange(key)}
+            >
               {label}
             </button>
           ))}
@@ -177,7 +199,7 @@ export default function UserPanel({ user, onLogout, initialTab = 'dashboard', on
         )}
       </aside>
 
-      <section style={{ ...ui.content, padding: isMobile ? 12 : ui.content.padding }}>
+      <section style={{ ...ui.content, padding: isMobile ? (isPhone13 ? 8 : 12) : ui.content.padding }}>
         {isMobile && (
           <div style={{ marginBottom: 12, display: 'flex', alignItems: 'center', gap: 10 }}>
             <button
@@ -201,9 +223,9 @@ export default function UserPanel({ user, onLogout, initialTab = 'dashboard', on
             <strong style={{ color: '#17314a' }}>Menu</strong>
           </div>
         )}
-        <div style={ui.header}>
-          <h1 style={ui.title}>Welcome, {user?.username || 'User'}</h1>
-          <p style={ui.subtitle}>Manage your water bills, payments, and receipts.</p>
+        <div style={{ ...ui.header, marginBottom: isPhone13 ? 12 : ui.header.marginBottom }}>
+          <h1 style={{ ...ui.title, fontSize: isPhone13 ? 22 : ui.title.fontSize }}>Welcome, {user?.username || 'User'}</h1>
+          <p style={{ ...ui.subtitle, fontSize: isPhone13 ? 13 : ui.subtitle.fontSize }}>Manage your water bills, payments, and receipts.</p>
         </div>
 
         {info && <div style={ui.notice}><p className="success" style={{ margin: 0 }}>{info}</p></div>}
@@ -211,7 +233,7 @@ export default function UserPanel({ user, onLogout, initialTab = 'dashboard', on
 
         {tab === 'dashboard' && (
           <>
-            <div style={ui.cards}>
+            <div style={{ ...ui.cards, gridTemplateColumns: isPhone13 ? '1fr' : ui.cards.gridTemplateColumns, gap: isPhone13 ? 10 : ui.cards.gap }}>
               <div style={ui.card}>
                 <p style={ui.cardLabel}>Total Bills</p>
                 <p style={ui.cardValue}>{totalBills}</p>
@@ -231,8 +253,8 @@ export default function UserPanel({ user, onLogout, initialTab = 'dashboard', on
                 <div style={ui.sectionHead}>
                   <h3 style={ui.sectionTitle}>Account Details</h3>
                 </div>
-                <div style={{ padding: 16 }}>
-                  <div style={ui.profileGrid}>
+                <div style={{ padding: isPhone13 ? 12 : 16 }}>
+                  <div style={{ ...ui.profileGrid, gridTemplateColumns: isPhone13 ? '1fr' : ui.profileGrid.gridTemplateColumns }}>
                     <div style={ui.profileItem}>
                       <p style={ui.profileLabel}>Full Name</p>
                       <p style={ui.profileValue}>{profile.full_name}</p>
