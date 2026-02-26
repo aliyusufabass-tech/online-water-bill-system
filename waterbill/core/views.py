@@ -53,16 +53,15 @@ class RegisterAPIView(APIView):
 
 
 class AdminRegisterAPIView(APIView):
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [permissions.IsAuthenticated, permissions.IsAdminUser]
 
     def post(self, request):
-        serializer = RegisterSerializer(data=request.data)
+        serializer = AdminCreateUserSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
         return Response(
             {
-                'message': 'Registration successful.',
-                'tokens': build_tokens(user),
+                'message': 'Admin user created successfully.',
                 'user': UserSerializer(user).data,
             },
             status=status.HTTP_201_CREATED,

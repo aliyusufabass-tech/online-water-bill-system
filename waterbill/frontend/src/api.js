@@ -25,11 +25,20 @@ async function refreshAccessToken() {
   const refresh = getRefreshToken();
   if (!refresh) return false;
 
-  const response = await fetch(`${API_BASE_URL}/token/refresh/`, {
+  const controller = new AbortController();
+  const timeoutMs = 20000;
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+  let response;
+  try {
+    response = await fetch(`${API_BASE_URL}/token/refresh/`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ refresh }),
-  });
+      signal: controller.signal,
+    });
+  } finally {
+    clearTimeout(timeoutId);
+  }
 
   const data = await response.json().catch(() => ({}));
   if (!response.ok || !data.tokens) {
@@ -49,10 +58,26 @@ async function request(path, options = {}, allowRefresh = true) {
   };
   if (access) headers.Authorization = `Bearer ${access}`;
 
-  const response = await fetch(`${API_BASE_URL}${path}`, {
-    ...options,
-    headers,
-  });
+  let response;
+  const timeoutMs = options.timeoutMs ?? 20000;
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    response = await fetch(`${API_BASE_URL}${path}`, {
+      ...options,
+      headers,
+      signal: controller.signal,
+    });
+  } catch (error) {
+    const isAbort = error instanceof DOMException && error.name === 'AbortError';
+    throw new Error(
+      isAbort
+        ? 'Request timed out. Please try again.'
+        : 'Unable to reach the server. Check your API URL, CORS settings, and internet connection.'
+    );
+  } finally {
+    clearTimeout(timeoutId);
+  }
 
   if (response.status === 401 && allowRefresh && getRefreshToken()) {
     const refreshed = await refreshAccessToken();
@@ -61,13 +86,23 @@ async function request(path, options = {}, allowRefresh = true) {
     }
   }
 
-  const data = await response.json().catch(() => ({}));
+  let data = {};
+  let rawText = '';
+  try {
+    data = await response.json();
+  } catch {
+    rawText = await response.text().catch(() => '');
+  }
+
   if (!response.ok) {
     if (typeof data.error === 'string') {
       throw new Error(data.error);
     }
     if (typeof data.detail === 'string') {
       throw new Error(data.detail);
+    }
+    if (typeof data.message === 'string') {
+      throw new Error(data.message);
     }
     if (data && typeof data === 'object') {
       const entries = Object.entries(data);
@@ -78,7 +113,10 @@ async function request(path, options = {}, allowRefresh = true) {
         throw new Error(`${field}: ${message}`);
       }
     }
-    throw new Error('Request failed');
+    if (rawText) {
+      throw new Error(rawText.slice(0, 200));
+    }
+    throw new Error(response.statusText || 'Request failed');
   }
   return data;
 }
@@ -87,11 +125,23 @@ export async function api(path, options = {}) {
   return request(path, options);
 }
 
-export async function apiDownload(path) {
+export async function apiDownload(path, options = {}) {
   const access = getAccessToken();
-  const response = await fetch(`${API_BASE_URL}${path}`, {
-    headers: access ? { Authorization: `Bearer ${access}` } : {},
-  });
+  const timeoutMs = options.timeoutMs ?? 20000;
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+  let response;
+  try {
+    response = await fetch(`${API_BASE_URL}${path}`, {
+      headers: access ? { Authorization: `Bearer ${access}` } : {},
+      signal: controller.signal,
+    });
+  } catch (error) {
+    const isAbort = error instanceof DOMException && error.name === 'AbortError';
+    throw new Error(isAbort ? 'Download timed out. Please try again.' : 'Unable to reach the server.');
+  } finally {
+    clearTimeout(timeoutId);
+  }
 
   if (!response.ok) {
     let message = 'Download failed';
