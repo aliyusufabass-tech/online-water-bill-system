@@ -19,10 +19,6 @@ except ModuleNotFoundError:
     ]
     HAS_CORSHEADERS = False
 
-
-BASE_DIR = Path(__file__).resolve().parent.parent
-
-
 def env_bool(name, default=False):
     value = os.getenv(name)
     if value is None:
@@ -33,7 +29,7 @@ def env_bool(name, default=False):
 def env_list(name, default=''):
     raw = os.getenv(name, default)
     return [item.strip() for item in raw.split(',') if item.strip()]
-
+BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = os.getenv('SECRET_KEY', 'dev-only-secret-key-change-me')
 DEBUG = env_bool('DEBUG', False)
@@ -93,13 +89,13 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'waterbill.wsgi.application'
 
-DATABASE_URL = os.environ.get('DATABASE_URL')
+DATABASE_URL = os.environ.get('DATABASE_URL', 'postgresql://neondb_owner:npg_QY1BUI6iujMa@ep-proud-firefly-ai88v5pf-pooler.c-4.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require')
 if DATABASE_URL:
     DATABASES = {
         'default': dj_database_url.config(
             default=DATABASE_URL,
             conn_max_age=600,
-            ssl_require=False,
+            ssl_require=True,
         )
     }
 else:
@@ -175,3 +171,4 @@ REST_FRAMEWORK = {
         'core.jwt_auth.JWTAuthentication',
     ],
 }
+

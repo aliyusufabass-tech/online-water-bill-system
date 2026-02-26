@@ -90,25 +90,13 @@ TEMPLATES = [
 WSGI_APPLICATION = 'waterbill.wsgi.application'
 
 DATABASE_URL = os.environ.get('DATABASE_URL', 'postgresql://neondb_owner:npg_QY1BUI6iujMa@ep-proud-firefly-ai88v5pf-pooler.c-4.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require')
-if DATABASE_URL:
-    DATABASES = {
-        'default': dj_database_url.config(
-            default=DATABASE_URL,
-            conn_max_age=600,
-            ssl_require=True,
-        )
-    }
-else:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'NAME': os.getenv('POSTGRES_DB', 'Yusuf'),
-            'USER': os.getenv('POSTGRES_USER', 'postgres'),
-            'PASSWORD': os.getenv('POSTGRES_PASSWORD', 'Yusuf@24'),
-            'HOST': os.getenv('POSTGRES_HOST', 'localhost'),
-            'PORT': os.getenv('POSTGRES_PORT', '5432'),
-        }
-    }
+DATABASES = {
+    'default': dj_database_url.config(
+        default=DATABASE_URL,
+        conn_max_age=600,
+        ssl_require=True,
+    )
+}
 
 AUTH_PASSWORD_VALIDATORS = [
     {
