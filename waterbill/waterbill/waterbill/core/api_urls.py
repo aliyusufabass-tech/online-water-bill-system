@@ -3,10 +3,12 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    path('home/', views.MeAPIView.as_view(), name='api_home'),
+    # Canonical auth endpoints (frontend uses unified login and customer register)
     path('register/', views.RegisterAPIView.as_view(), name='api_register'),
-    path('customer/register/', views.RegisterAPIView.as_view(), name='api_customer_register'),
     path('login/', views.LoginAPIView.as_view(), name='api_login'),
+    # Backward-compatible aliases
+    path('home/', views.MeAPIView.as_view(), name='api_home'),
+    path('customer/register/', views.RegisterAPIView.as_view(), name='api_customer_register'),
     path('customer/login/', views.LoginAPIView.as_view(), name='api_customer_login'),
     path('admin/register/', views.AdminRegisterAPIView.as_view(), name='api_admin_register'),
     path('admin/login/', views.AdminLoginAPIView.as_view(), name='api_admin_login'),

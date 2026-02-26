@@ -1,9 +1,9 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": null,
-  "installCommand": "npm install",
-  "buildCommand": "npm run build",
-  "outputDirectory": "dist",
+  "installCommand": "cd waterbill/frontend && npm install",
+  "buildCommand": "cd waterbill/frontend && npm run build",
+  "outputDirectory": "waterbill/frontend/dist",
   "rewrites": [
     {
       "source": "/api/(.*)",
