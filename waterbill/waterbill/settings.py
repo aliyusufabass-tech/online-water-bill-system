@@ -19,7 +19,6 @@ except ModuleNotFoundError:
     ]
     HAS_CORSHEADERS = False
 
-
 def env_bool(name, default=False):
     value = os.getenv(name)
     if value is None:
@@ -30,14 +29,15 @@ def env_bool(name, default=False):
 def env_list(name, default=''):
     raw = os.getenv(name, default)
     return [item.strip() for item in raw.split(',') if item.strip()]
-
-
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = os.getenv('SECRET_KEY', 'dev-only-secret-key-change-me')
 DEBUG = env_bool('DEBUG', False)
 
-ALLOWED_HOSTS = env_list('ALLOWED_HOSTS', 'localhost,127.0.0.1')
+ALLOWED_HOSTS = env_list(
+    'ALLOWED_HOSTS',
+    'localhost,127.0.0.1,online-water-bill-api.onrender.com',
+)
 render_hostname = os.getenv('RENDER_EXTERNAL_HOSTNAME')
 if render_hostname and render_hostname not in ALLOWED_HOSTS:
     ALLOWED_HOSTS.append(render_hostname)
@@ -89,13 +89,26 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'waterbill.wsgi.application'
 
-DATABASES = {
-    'default': dj_database_url.config(
-        default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
-        conn_max_age=600,
-        ssl_require=False,
-    )
-}
+DATABASE_URL = os.environ.get('DATABASE_URL', 'postgresql://neondb_owner:npg_QY1BUI6iujMa@ep-proud-firefly-ai88v5pf-pooler.c-4.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require')
+if DATABASE_URL:
+    DATABASES = {
+        'default': dj_database_url.config(
+            default=DATABASE_URL,
+            conn_max_age=600,
+            ssl_require=True,
+        )
+    }
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': os.getenv('POSTGRES_DB', 'Yusuf'),
+            'USER': os.getenv('POSTGRES_USER', 'postgres'),
+            'PASSWORD': os.getenv('POSTGRES_PASSWORD', 'Yusuf@24'),
+            'HOST': os.getenv('POSTGRES_HOST', 'localhost'),
+            'PORT': os.getenv('POSTGRES_PORT', '5432'),
+        }
+    }
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -158,3 +171,4 @@ REST_FRAMEWORK = {
         'core.jwt_auth.JWTAuthentication',
     ],
 }
+

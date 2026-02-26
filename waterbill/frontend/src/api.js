@@ -86,7 +86,14 @@ async function request(path, options = {}, allowRefresh = true) {
     }
   }
 
-  const data = await response.json().catch(() => ({}));
+  let data = {};
+  let rawText = '';
+  try {
+    data = await response.json();
+  } catch {
+    rawText = await response.text().catch(() => '');
+  }
+
   if (!response.ok) {
     if (typeof data.error === 'string') {
       throw new Error(data.error);
@@ -105,6 +112,9 @@ async function request(path, options = {}, allowRefresh = true) {
         const message = Array.isArray(value) ? value[0] : value;
         throw new Error(`${field}: ${message}`);
       }
+    }
+    if (rawText) {
+      throw new Error(rawText.slice(0, 200));
     }
     throw new Error(response.statusText || 'Request failed');
   }
