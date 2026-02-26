@@ -1,4 +1,6 @@
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL ||
+  (import.meta.env.PROD ? 'https://online-water-bill-api.onrender.com/api' : '/api');
 const ACCESS_KEY = 'waterbill_access_token';
 const REFRESH_KEY = 'waterbill_refresh_token';
 
@@ -31,9 +33,9 @@ async function refreshAccessToken() {
   let response;
   try {
     response = await fetch(`${API_BASE_URL}/token/refresh/`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ refresh }),
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ refresh }),
       signal: controller.signal,
     });
   } finally {
@@ -58,10 +60,10 @@ async function request(path, options = {}, allowRefresh = true) {
   };
   if (access) headers.Authorization = `Bearer ${access}`;
 
-  let response;
   const timeoutMs = options.timeoutMs ?? 20000;
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+  let response;
   try {
     response = await fetch(`${API_BASE_URL}${path}`, {
       ...options,
